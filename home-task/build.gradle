@@ -9,7 +9,7 @@ task buildcustom ( type: Jar) {
         	'Implementation-Version': version,
         	'Main-Class': 'com.test.Project'
     }
-    baseName = "hw3-app-1.0"
+    baseName = "hw3-app"
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
 }
