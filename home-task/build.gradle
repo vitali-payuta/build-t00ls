@@ -5,13 +5,3 @@ task buildcustom ( type: Jar) {
 	archiveFileName = "hw3-app-1.0.jar"
 }
 
-task.named('testcustom') {
-	dependsOn buildcustom
-	from 'test'
-}
-
-task.named('hello') {
-	dependsOn testcustom
-}
-
-
