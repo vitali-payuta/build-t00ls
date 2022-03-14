@@ -17,6 +17,8 @@ task buildcustom ( type: Jar) {
 task testcustom ( type: Jar, dependsOn: buildcustom) {
     classifier = 'tests'
     from sourceSets.test.allSource
+    useJUnit()
+    maxHeapSize = '1G'
 }
 
 task hello (type: JavaExec, dependsOn: testcustom) {
