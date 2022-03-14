@@ -1,7 +1,21 @@
 apply plugin: 'java'
+apply plugin: 'application'
+
+mainClassName = 'com.test.Project'
 
 task buildcustom ( type: Jar) {
 	from 'build'
 	archiveFileName = "hw3-app-1.0.jar"
 }
 
+repositories { 
+    mavenCentral() 
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+dependencies {
+    implementation "joda-time:joda-time:2.2"
+    testImplementation "junit:junit:4.12"
+}
