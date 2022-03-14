@@ -14,15 +14,9 @@ task buildcustom ( type: Jar) {
     with jar
 }
 
-task testcustom ( type: Jar, dependsOn: buildcustom) {
-    dependsOn("testClasses")
-    classifier = 'test'
-    from sourceSets.test.allSource
-    
-}
-
-test {
+task testcustom (dependsOn: buildcustom) {
     useJUnit()
+    
 }
 
 task hello (type: JavaExec, dependsOn: testcustom) {
