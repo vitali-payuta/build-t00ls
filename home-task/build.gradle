@@ -14,10 +14,13 @@ task buildcustom ( type: Jar) {
     with jar
 }
 
-task testcustom (dependsOn: buildcustom) {
-    useJUnit()
+task testcustom ( type: Jar, dependsOn: buildcustom) {
+    dependsOn("testClasses")
+    classifier = 'test'
+    from sourceSets.test.allSource
     
 }
+
 
 task hello (type: JavaExec, dependsOn: testcustom) {
     group = "Execution"
