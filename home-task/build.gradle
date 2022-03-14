@@ -16,6 +16,7 @@ task buildcustom ( type: Jar) {
 
 repositories { 
     mavenCentral() 
+    jcenter()
 }
 
 sourceCompatibility = 1.8
@@ -25,6 +26,7 @@ dependencies {
     implementation "joda-time:joda-time:2.2"
     implementation 'org.apache.commons:commons-collections4:4.0'
     compile 'org.slf4j:slf4j-api:1.7.12'
-    compile 'org.apache.logging.log4j:log4j:1.2.17'
+    implementation 'org.apache.logging.log4j:log4j-api:2.17.2'
+    implementation 'org.apache.logging.log4j:log4j-core:2.17.2'
     testImplementation "junit:junit:4.12"
 }
