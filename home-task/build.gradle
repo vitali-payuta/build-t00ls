@@ -15,10 +15,10 @@ task buildcustom ( type: Jar) {
 }
 
 task testcustom ( type: Jar, dependsOn: buildcustom) {
-    group = "Execution"
-    description = "Run the main class with JavaExecTask"
-    classpath = sourceSets.test.runtimeClasspath
-    main = 'com.test.UnitTest'
+    dependsOn("testClasses")
+    classifier = 'test'
+    from sourceSets.test.allSource
+    
 }
 
 task hello (type: JavaExec, dependsOn: testcustom) {
