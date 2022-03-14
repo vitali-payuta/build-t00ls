@@ -1,15 +1,24 @@
 apply plugin: 'java'
 
+application {
+    mainClass = 'com.test.Project'
+}
+
 task buildcustom ( type: Jar) {
 	from 'build'
+	archiveFileName = "hw3-app-1.0.jar"
 }
 
-task testcustom ( type: Zip) {
+task.named('testcustom') {
 	dependsOn buildcustom
-	from 'build'
+	from 'test'
 }
 
-task hello ( type: Zip) {
+task.named('hello') {
 	dependsOn testcustom
-	from 'build'
+	plugins {
+		id 'application'
+	}
 }
+
+
