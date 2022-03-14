@@ -18,8 +18,8 @@ task buildcustom ( type: Jar) {
 task hello (type: JavaExec) {
     group = "Execution"
     description = "Run the main class with JavaExecTask"
-    classpath = com.test
-    main = Project
+    classpath = sourceSets.main.runtimeClasspath
+    main = 'com.test.Project'
 }
 
 repositories { 
