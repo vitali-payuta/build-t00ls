@@ -1,9 +1,5 @@
 apply plugin: 'java'
 
-application {
-    mainClass = 'com.test.Project'
-}
-
 task buildcustom ( type: Jar) {
 	from 'build'
 	archiveFileName = "hw3-app-1.0.jar"
@@ -16,9 +12,6 @@ task.named('testcustom') {
 
 task.named('hello') {
 	dependsOn testcustom
-	plugins {
-		id 'application'
-	}
 }
 
 
