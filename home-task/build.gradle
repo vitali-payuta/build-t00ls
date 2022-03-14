@@ -14,11 +14,8 @@ task buildcustom ( type: Jar) {
     with jar
 }
 
-task testcustom ( type: Jar, dependsOn: buildcustom) {
-    dependsOn("testClasses")
-    classifier = 'test'
-    from sourceSets.test.allSource
-    
+task testcustom ( dependsOn: buildcustom) {
+      from 'test'
 }
 
 
