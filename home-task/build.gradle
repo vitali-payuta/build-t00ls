@@ -14,13 +14,10 @@ task buildcustom ( type: Jar) {
     with jar
 }
 
-task testcustom ( dependsOn: buildcustom) {
-      from 'test'
+task testcustom ( type: Test, dependsOn: buildcustom) {
+        useJUnit()
 }
 
-test {
-    useJUnit()
-}
 
 task hello (type: JavaExec, dependsOn: testcustom) {
     group = "Execution"
