@@ -22,7 +22,7 @@ task testcustom ( type: Jar, dependsOn: buildcustom) {
 }
 
 test {
-    useJUnitPlatform()
+    useJUnit()
 }
 
 task hello (type: JavaExec, dependsOn: testcustom) {
