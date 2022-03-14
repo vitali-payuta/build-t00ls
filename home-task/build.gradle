@@ -19,7 +19,7 @@ task hello (type: JavaExec) {
     group = "Execution"
     description = "Run the main class with JavaExecTask"
     classpath = sourceSets.main.runtimeClasspath
-    main = com.test.Project
+    main = Project
 }
 
 repositories { 
