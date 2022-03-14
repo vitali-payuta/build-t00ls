@@ -16,6 +16,9 @@ task buildcustom ( type: Jar) {
 
 task testcustom ( type: Test, dependsOn: buildcustom) {
         useJUnit()
+        testLogging {
+        events "started", "passed", "skipped", "failed"
+    }
 }
 
 
