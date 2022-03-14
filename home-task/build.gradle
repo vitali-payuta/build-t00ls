@@ -14,9 +14,9 @@ task hello ( type: Zip) {
 	from 'build'
 }
 
-dependencies {
+/dependencies {
 	repositories {
 		mavenCentral() //this section tells gradle where to find dependencies
 	}
 	compile group: 'junit', name: 'junit', version: '4.4' //adding dependency
-}
+}/
