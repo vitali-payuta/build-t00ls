@@ -1,16 +1,16 @@
 apply plugin: 'java'
 
-task build-custom ( type: Jar) {
+task buildcustom ( type: Jar) {
 	from 'build'
 }
 
-task test-custom ( type: Zip) {
-	dependsOn build-custom
+task testcustom ( type: Zip) {
+	dependsOn buildcustom
 	from 'build'
 }
 
 task hello ( type: Zip) {
-	dependsOn test-custom
+	dependsOn testcustom
 	from 'build'
 }
 
