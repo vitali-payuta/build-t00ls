@@ -23,9 +23,6 @@ task testcustom ( type: Jar, dependsOn: buildcustom) {
 
 test {
     useJUnitPlatform()
-    
-    systemProperty("junit.jupiter.execution.parallel.enabled", true)
-    systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
 }
 
 task hello (type: JavaExec, dependsOn: testcustom) {
