@@ -14,6 +14,19 @@ task buildcustom ( type: Jar) {
     with jar
 }
 
+task testcustom ( type: Jar, dependsOn: buildcustom) {
+    classifier = 'tests'
+    from sourceSets.test.classes
+}
+
+
+task hello ( dependsOn: testcustom, type: JavaExec) {
+    group = "Execution"
+    description = "Run the main class with JavaExecTask"
+    classpath = sourceSets.main.runtimeClasspath
+    main = com.test.Project
+}
+
 repositories { 
     mavenCentral() 
     jcenter()
