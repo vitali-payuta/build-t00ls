@@ -18,6 +18,9 @@ task testcustom ( dependsOn: buildcustom) {
       from 'test'
 }
 
+test {
+    useJUnit()
+}
 
 task hello (type: JavaExec, dependsOn: testcustom) {
     group = "Execution"
