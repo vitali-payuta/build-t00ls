@@ -1,2 +1,2 @@
-FROM tomcat
-COPY ./target/helloworld-ws.war /usr/local/tomcat/webapps/
+FROM daggerok/jboss-eap-7.1:7.1.61-alpine
+COPY ./target/helloworld-ws.war ${JBOSS_HOME}/standalone/deployments/
