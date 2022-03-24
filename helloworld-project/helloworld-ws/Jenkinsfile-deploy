@@ -1,0 +1,40 @@
+pipeline {
+    options {timestamps()}
+    agent any
+    environment {
+        registry = "172.17.0.1:8083"
+    }
+    stages {
+        stage('Check for runing container') {
+         steps {
+            copyArtifacts filter: 'BN.txt', fingerprintArtifacts: true, projectName: 'hw8-build'
+            sh'''#!/bin/bash
+            BN="$(cat BN.txt)"
+            PBN=$(($BN-1)) 
+            docker login -u admin -p 1308 172.17.0.1:8083
+            if [[ $(docker ps -f name=helloworld-$PBN | sed '1d') ]]; then docker stop helloworld-$PBN; else echo 'no container'; fi
+            '''
+         }
+        }
+        stage('Run new container') {
+         steps {
+            sh'''#!/bin/bash
+            BN="$(cat BN.txt)"
+            PBN=$(($BN-1)) 
+            docker run -d -p 8085:8080 --name helloworld-$BN 172.17.0.1:8083/helloworld-vpayuta:rc-$BN
+            sleep 15
+            '''
+         }
+        }
+        stage('Health check') {
+         steps {
+            sh'''#!/bin/bash
+            BN="$(cat BN.txt)"
+            PBN=$(($BN-1)) 
+            curl -o /dev/null --silent --head --write-out '%{http_code}\n' 172.17.0.1:8085 > SC.txt; 
+            if [[ $(cat SC.txt) == "200" ]]; then docker rm helloworld-$PBN || echo 'no container'; else docker rm -f helloworld-$BN && docker start helloworld-$BN; fi
+            '''
+         }
+        }
+    }
+}

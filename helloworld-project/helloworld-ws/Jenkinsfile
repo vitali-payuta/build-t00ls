@@ -1,0 +1,64 @@
+pipeline {
+    options { timestamps() }
+    agent any
+    environment {
+        imageName = 'helloworld-vpayuta'
+        registryCredentials = "nexus"
+        registry = "172.17.0.1:8083"
+        dockerImage = ''
+    }
+    tools { 
+        maven 'mvn3' 
+    }
+    stages {
+        stage('Connect to GitHub')  {
+            steps {
+                git branch: 'vpayuta_deploy',
+                    url: 'https://github.com/vitali-payuta/build-t00ls.git'
+            }
+        }
+        
+        stage('Package application') {
+            steps {
+                dir('helloworld-project/helloworld-ws/') {
+                  sh 'mvn package -DskipTests'
+                }
+            }
+        }
+        stage('Test application') { 
+            steps {
+                dir('helloworld-project/helloworld-ws/') {
+                    sh 'mvn test' 
+                }
+            }
+        }
+
+        stage('Build image') {
+          steps{
+              dir('helloworld-project/helloworld-ws/') {
+                script {
+                  dockerImage = docker.build imageName
+                }
+              }
+          }
+        }
+        
+        stage('Sending to Nexus') {
+         steps{  
+             script {
+                 docker.withRegistry( 'http://'+registry, registryCredentials ) {
+                 dockerImage.push("rc-${env.BUILD_NUMBER}")
+              }
+            }
+          }
+        }
+        stage('Saving BUILD_NUMBER in file') {
+         steps{  
+             sh'''
+              echo ${BUILD_NUMBER} > BN.txt
+              '''
+             archiveArtifacts artifacts: 'BN.txt', followSymlinks: false
+         }
+        }
+    }
+}
