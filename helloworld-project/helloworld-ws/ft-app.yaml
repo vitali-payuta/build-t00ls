@@ -42,13 +42,7 @@ spec:
       - name: docker-creds
       containers:
       - name: ft-app
-        env:
-        - name: IMAGE
-          valueFrom:
-            configMapKeyRef:
-              name: special-config
-              key: IMAGE
-        image: $(IMAGE)
+        image: <IMAGE>
         ports:
         - containerPort: 8080
 

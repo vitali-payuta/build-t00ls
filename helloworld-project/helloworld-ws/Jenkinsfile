@@ -17,7 +17,7 @@ pipeline {
         stage('Preparation')  {
             steps {
                 cleanWs()
-                git branch: 'vpayuta_deploy',
+                git branch: 'vpayuta_ft',
                     url: 'https://github.com/vitali-payuta/build-t00ls.git'
             }
         }
@@ -115,8 +115,7 @@ pipeline {
             steps {
                 script {
                     timeout(time:30, unit:'SECONDS') {
-                        env.APPROVE_PROD = input message: 'Deploy to Production', ok: 'Continue',
-                            parameters: [choice(name: 'APPROVE_PROD', choices: 'NO\nYES', description: 'Deploy from STAGING to PRODUCTION?')]
+                        env.APPROVE_PROD = input message: 'Deploy to Production', ok: 'Continue'
                     }
                 }
             }
@@ -125,15 +124,11 @@ pipeline {
         stage('Deployment ') {
             steps {
                 script {
-                    if (env.APPROVE_ROD == 'YES') {
-                        script {
-                            withKubeConfig([credentialsId: 'minikubeconfig', serverUrl: "https://172.19.0.2:8443", namespace: "vpayuta"]) {
-                                sh "kubectl create configmap special-config --from-literal=IMAGE="172.19.0.2:8083/helloworld-vpayuta:${env.BUILD_NUMBER}""
-                                sh "kubectl apply -f helloworld-project/helloworld-ws/ft-app.yaml "
-                            } 
-                        }
-                    } else {
-                        sh "echo no deploy"
+                    script {
+                        withKubeConfig([credentialsId: 'minikubeconfig', serverUrl: "https://172.19.0.2:8443", namespace: "vpayuta"]) {
+                            sh "sed -i -e "s,<IMAGE>,172.19.0.3:8083/helloworld-vpayuta:${env.BUILD_NUMBER},g" ./helloworld-project/helloworld-ws/ft-app.yaml"
+                            sh "kubectl apply -f ./helloworld-project/helloworld-ws/ft-app.yaml "
+                        } 
                     }
                 }
             }
