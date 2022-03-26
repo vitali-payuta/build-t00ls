@@ -128,6 +128,7 @@ pipeline {
                     if (env.APPROVE_ROD == 'YES') {
                         script {
                             withKubeConfig([credentialsId: 'minikubeconfig', serverUrl: "https://172.19.0.2:8443", namespace: "vpayuta"]) {
+                                sh "kubectl create configmap special-config --from-literal=IMAGE="172.19.0.2:8083/helloworld-vpayuta:${env.BUILD_NUMBER}""
                                 sh "kubectl apply -f helloworld-project/helloworld-ws/ft-app.yaml "
                             } 
                         }

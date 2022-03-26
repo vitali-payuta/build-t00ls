@@ -42,7 +42,13 @@ spec:
       - name: docker-creds
       containers:
       - name: ft-app
-        image:  172.19.0.3:8082/helloworld-nprohorov:rc-32
+        env:
+        - name: IMAGE
+          valueFrom:
+            configMapKeyRef:
+              name: special-config
+              key: IMAGE
+        image: $(IMAGE)
         ports:
         - containerPort: 8080
 
