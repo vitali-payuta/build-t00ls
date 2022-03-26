@@ -5,7 +5,7 @@ pipeline {
         imageName = 'helloworld-vpayuta'
         registryCredentials = "nexus"
         sonarCredentials = "sonar"
-        registry = "172.17.0.1:8083"
+        registry = "172.19.0.3:8083"
         dockerImage = ''
     }
     
@@ -114,19 +114,9 @@ pipeline {
         stage('Asking for manual approval') {
             steps {
                 script {
-                    try {
-                        timeout(time:30, unit:'SECONDS') {
-                            env.APPROVE_PROD = input message: 'Deploy to Production', ok: 'Continue',
-                                parameters: [choice(name: 'APPROVE_PROD', choices: 'YES\nNO', description: 'Deploy from STAGING to PRODUCTION?')]
-                            if (env.APPROVE_PROD == 'YES'){
-                                env.DPROD = true
-                            } else {
-                                env.DPROD = false
-                            }
-                        }
-                    } catch (error) {
-                        env.DPROD = false
-                        echo 'Timeout has been reached!'
+                    timeout(time:30, unit:'SECONDS') {
+                        env.APPROVE_PROD = input message: 'Deploy to Production', ok: 'Continue',
+                            parameters: [choice(name: 'APPROVE_PROD', choices: 'NO\nYES', description: 'Deploy from STAGING to PRODUCTION?')]
                     }
                 }
             }
@@ -135,8 +125,12 @@ pipeline {
         stage('Deployment ') {
             steps {
                 script {
-                    if (env.DPROD == true) {
-                        sh "echo test"
+                    if (env.APPROVE_ROD == 'YES') {
+                        script {
+                            withKubeConfig([credentialsId: 'minikubeconfig', serverUrl: "https://172.19.0.2:8443", namespace: "vpayuta"]) {
+                                sh "kubectl apply -f helloworld-project/helloworld-ws/ft-app.yaml "
+                            } 
+                        }
                     } else {
                         sh "echo no deploy"
                     }
