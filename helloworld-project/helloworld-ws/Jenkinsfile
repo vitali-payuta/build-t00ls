@@ -4,61 +4,144 @@ pipeline {
     environment {
         imageName = 'helloworld-vpayuta'
         registryCredentials = "nexus"
+        sonarCredentials = "sonar"
         registry = "172.17.0.1:8083"
         dockerImage = ''
     }
+    
     tools { 
         maven 'mvn3' 
     }
+    
     stages {
-        stage('Connect to GitHub')  {
+        stage('Preparation')  {
             steps {
+                cleanWs()
                 git branch: 'vpayuta_deploy',
                     url: 'https://github.com/vitali-payuta/build-t00ls.git'
             }
         }
         
-        stage('Package application') {
+        stage('Building code') {
             steps {
                 dir('helloworld-project/helloworld-ws/') {
-                  sh 'mvn package -DskipTests'
+                    sh 'mvn package -DskipTests'
                 }
             }
-        }
-        stage('Test application') { 
-            steps {
-                dir('helloworld-project/helloworld-ws/') {
-                    sh 'mvn test' 
-                }
-            }
-        }
-
-        stage('Build image') {
-          steps{
-              dir('helloworld-project/helloworld-ws/') {
-                script {
-                  dockerImage = docker.build imageName
-                }
-              }
-          }
         }
         
-        stage('Sending to Nexus') {
-         steps{  
-             script {
-                 docker.withRegistry( 'http://'+registry, registryCredentials ) {
-                 dockerImage.push("rc-${env.BUILD_NUMBER}")
-              }
+        stage ('Sonar scan') {
+            steps {
+                echo "starting codeAnalyze with SonarQube......"
+                withSonarQubeEnv('sonarqube-9.3') {
+                    sh "/var/jenkins_home/tools/hudson.plugins.sonar.SonarRunnerInstallation/sqs4.7/bin/sonar-scanner -Dsonar.host.url=http://172.17.0.1:9000  -Dsonar.projectKey=deployhw -Dsonar.projectName=deployhw -Dsonar.language=java -Dsonar.qualitygate.wait=true -Dsonar.projectVersion=1.0 -Dsonar.java.binaries=helloworld-project/helloworld-ws/target -Dsonar.sources=helloworld-project/helloworld-ws/src/main/ -Dsonar.tests=helloworld-project/helloworld-ws/src/test/ "
+                }
             }
-          }
         }
-        stage('Saving BUILD_NUMBER in file') {
-         steps{  
-             sh'''
-              echo ${BUILD_NUMBER} > BN.txt
-              '''
-             archiveArtifacts artifacts: 'BN.txt', followSymlinks: false
-         }
+        
+        stage('Testing application') { 
+            parallel {
+                stage('pre-integration-test') {
+                    steps {
+                        dir('helloworld-project/helloworld-ws/') {
+                            sh 'mvn pre-integration-test' 
+                        }
+                    }
+                }
+                stage('integration-test') {
+                    steps {
+                        dir('helloworld-project/helloworld-ws/') {
+                            sh 'echo mvn integration-test' 
+                        }
+                    }
+                }
+                stage('post-integration-test') {
+                    steps {
+                        dir('helloworld-project/helloworld-ws/') {
+                            sh ' echo mvn post-integration-test' 
+                        }
+                    }
+                }
+            }
         }
+        
+        stage('Triggering job and fetching artefact after finishing') {
+            steps {
+                build(job: 'MNTLAB-vpayuta-child1-build-job', parameters: [[$class: 'GitParameterValue', name: 'BRANCH_NAME', value: 'origin/vpayuta_maven']], propagate: true, wait: true)
+                copyArtifacts filter: 'home-task/target/*.log', fingerprintArtifacts: true, projectName: 'MNTLAB-vpayuta-child1-build-job'
+            }
+        }
+        
+        stage('Packaging and Publishing results') { 
+            parallel {
+                stage('Archiving artifact') {
+                    steps {
+                         sh "gzip -c  home-task/target/*.log helloworld-project/helloworld-ws/target/helloworld-ws.war helloworld-project/helloworld-ws/Jenkinsfile > pipeline-vpayuta-${env.BUILD_NUMBER}.gz"
+                         nexusArtifactUploader(
+                            nexusVersion: "nexus3",
+                            protocol: "http",
+                            nexusUrl: "172.17.0.1:8081",
+                            groupId: "ft",
+                            version: "${env.BUILD_NUMBER}",
+                            repository: "hw5test",
+                            credentialsId: registryCredentials,
+                            artifacts: [
+                                [artifactId: "pipeline-vpayuta",
+                                classifier: '',
+                                file: "pipeline-vpayuta-${env.BUILD_NUMBER}.gz",
+                                type: 'gz']
+                            ]
+                        );
+                    }
+                }
+                stage('Creating Docker Image') {
+                    steps {
+                        dir('helloworld-project/helloworld-ws/') {
+                            script {
+                                dockerImage = docker.build imageName
+                            }
+                        }
+                        script {
+                            docker.withRegistry( 'http://'+registry, registryCredentials ) {
+                                dockerImage.push("${env.BUILD_NUMBER}")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('Asking for manual approval') {
+            steps {
+                script {
+                    try {
+                        timeout(time:30, unit:'SECONDS') {
+                            env.APPROVE_PROD = input message: 'Deploy to Production', ok: 'Continue',
+                                parameters: [choice(name: 'APPROVE_PROD', choices: 'YES\nNO', description: 'Deploy from STAGING to PRODUCTION?')]
+                            if (env.APPROVE_PROD == 'YES'){
+                                env.DPROD = true
+                            } else {
+                                env.DPROD = false
+                            }
+                        }
+                    } catch (error) {
+                        env.DPROD = false
+                        echo 'Timeout has been reached!'
+                    }
+                }
+            }
+        }
+        
+        stage('Deployment ') {
+            steps {
+                script {
+                    if (env.DPROD == true) {
+                        sh "echo test"
+                    } else {
+                        sh "echo no deploy"
+                    }
+                }
+            }
+        }    
     }
 }
